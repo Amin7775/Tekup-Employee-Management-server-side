@@ -10,7 +10,7 @@ app.use(express.json());
 
 // db
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Password}@clusterpherob9.3leb5bl.mongodb.net/?retryWrites=true&w=majority&appName=ClusterPheroB9`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -45,6 +45,21 @@ async function run() {
       }
       const result = await userCollection.insertOne(userInfo);
       res.send(result);
+    });
+    // update single user isVerify data
+    app.patch("/users/:id", async (req, res) => {
+      const userId = req.params.id;
+      const {isVerfied} = req.body;
+    //   console.log(userId,isVerfied);
+      const query = { _id: new ObjectId(userId) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          isVerfied: !isVerfied,
+        },
+      };
+      const result = await userCollection.updateOne(query, updateDoc, options);
+      res.send(result)
     });
 
     console.log(
