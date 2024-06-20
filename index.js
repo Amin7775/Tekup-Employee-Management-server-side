@@ -4,10 +4,27 @@ const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 5000;
 const stripe = require("stripe")(process.env.Stripe_Secret_key);
+const jwt = require('jsonwebtoken')
 
 // middleware
 app.use(cors());
 app.use(express.json());
+// jwt verify token middleware
+const verifyToken = (req,res,next)=>{
+  if(!req.headers.authorization){
+    return res.status(401).send({message: 'forbidden access'})
+  }
+  const token = req.headers.authorization.split(' ')[1]
+  // console.log(token)
+  jwt.verify(token, process.env.Access_Token_Secret,(err, decoded)=> {
+    if(err){
+      return res.status(401).send({message: 'forbidden access'})
+    }
+    req.decoded = decoded
+    // console.log(decoded.email)
+    next()
+  });
+}
 
 // db
 
@@ -30,10 +47,18 @@ async function run() {
     const userCollection = database.collection("users");
     const paymentCollection = database.collection("payments")
 
+    // ------ JWT related api ------
+    app.post('/jwt', async(req,res)=>{
+      const user = req.body;
+      const token = jwt.sign(user,process.env.Access_Token_Secret,{expiresIn:'1h'})
+      res.send({token})
+    })
+
+
     // -----user related api-----
 
     // getting all data
-    app.get("/users", async (req, res) => {
+    app.get("/users",verifyToken, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
@@ -89,7 +114,7 @@ async function run() {
         paidFor: paidFor,
         employeeId: employeeId
       });
-      console.log(existingPayment)
+      // console.log(existingPayment)
       if (existingPayment) {
         return res.status(400).send({ message: "Payment for this month/year already exists." });
       }
