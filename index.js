@@ -83,6 +83,17 @@ async function run() {
 
     app.post('/payments', async(req,res)=>{
       const payment = req.body;
+      const { employeeId, paidFor } = payment;
+      
+      const existingPayment = await paymentCollection.findOne({
+        paidFor: paidFor,
+        employeeId: employeeId
+      });
+      console.log(existingPayment)
+      if (existingPayment) {
+        return res.status(400).send({ message: "Payment for this month/year already exists." });
+      }
+
       const paymentResult = await paymentCollection.insertOne(payment)
       res.send({paymentResult})
     })
