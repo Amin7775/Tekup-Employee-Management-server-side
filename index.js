@@ -46,7 +46,8 @@ async function run() {
     const database = client.db("tekup");
     const userCollection = database.collection("users");
     const paymentCollection = database.collection("payments");
-    const workCollection = database.collection("works")
+    const workCollection = database.collection("works");
+    const contactUsCollection = database.collection("contactUs")
     // ------ JWT related api ------
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -161,6 +162,19 @@ async function run() {
       .find(query)
       .sort({ date: -1 })
       .toArray()
+      res.send(result)
+    })
+
+    // ---------- Contact Us related Apis ----------
+
+    app.get('/contactUs',verifyToken, async(req,res)=>{
+      const result = await contactUsCollection.find().toArray();
+      res.send(result)
+    })
+
+    app.post('/contactUs', async(req,res)=>{
+      const contactUsInfo = req.body;
+      const result = await contactUsCollection.insertOne(contactUsInfo)
       res.send(result)
     })
 
