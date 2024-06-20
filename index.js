@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 5000;
+const stripe = require("stripe")(process.env.Stripe_Secret_key);
 
 // middleware
 app.use(cors());
@@ -61,6 +62,23 @@ async function run() {
       const result = await userCollection.updateOne(query, updateDoc, options);
       res.send(result)
     });
+
+
+    // ------ Payment Related Apis ------
+    // payment intent
+    app.post('/create-payment-intent', async(req,res)=>{
+      const {salary} = req.body;
+      const amount = parseInt(salary * 100)
+      // console.log(amount)
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      })
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    })
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
