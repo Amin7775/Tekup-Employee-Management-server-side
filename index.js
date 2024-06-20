@@ -28,6 +28,7 @@ async function run() {
     // collections
     const database = client.db("tekup");
     const userCollection = database.collection("users");
+    const paymentCollection = database.collection("payments")
 
     // -----user related api-----
 
@@ -78,6 +79,12 @@ async function run() {
       res.send({
         clientSecret: paymentIntent.client_secret
       })
+    })
+
+    app.post('/payments', async(req,res)=>{
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment)
+      res.send({paymentResult})
     })
 
     console.log(
