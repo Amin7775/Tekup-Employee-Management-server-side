@@ -46,7 +46,7 @@ async function run() {
     const database = client.db("tekup");
     const userCollection = database.collection("users");
     const paymentCollection = database.collection("payments");
-
+    const workCollection = database.collection("works")
     // ------ JWT related api ------
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -145,6 +145,23 @@ async function run() {
       const query = { employeeEmail: userEmail };
       const count = await paymentCollection.countDocuments(query)
       res.send({count})
+    })
+
+    // ---------- work related api ---------
+    app.post('/works',verifyToken, async(req,res)=>{
+        const workInfo = req.body;
+        const result = await workCollection.insertOne(workInfo)
+        res.send(result)
+    })
+
+    app.get('/works', verifyToken,async(req,res)=>{
+      const userEmail = req.decoded?.email;
+      const query = {employeeEmail: userEmail}
+      const result = await workCollection
+      .find(query)
+      .sort({ date: -1 })
+      .toArray()
+      res.send(result)
     })
 
     console.log(
