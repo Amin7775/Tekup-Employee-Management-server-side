@@ -70,6 +70,21 @@ async function run() {
       const result = await userCollection.find(query).toArray();
       res.send(result);
     });
+    // make employee HR - Admin - All Employees page
+    app.patch("/employees/:id",verifyToken, async(req,res)=>{
+      const employeeId = req.params.id;
+      const { isHR } = req.body;
+      console.log(employeeId, isHR)
+      const query = { _id: new ObjectId(employeeId) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          role: isHR,
+        },
+      };
+      const result = await userCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    })
     // get single user info
     app.get("/users/:id", verifyToken, async (req, res) => {
       const userId = req.params.id;
