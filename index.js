@@ -64,17 +64,24 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+    // getting single user - Login page - used for checking isFired
+    app.get("/users/isFired/:email", async (req, res) => {
+      const userEmail = req.params.email;
+      const query = { email: userEmail };
+      const result = await userCollection.findOne(query);
+      res.send(result);
+    });
     // getting all data except Admin - For Admin - All Employees page
     app.get("/employees", verifyToken, async (req, res) => {
-      const query = {role: { $in: ["Employee", "HR"] }, isVerfied:true}
+      const query = { role: { $in: ["Employee", "HR"] }, isVerfied: true };
       const result = await userCollection.find(query).toArray();
       res.send(result);
     });
     // make employee HR - Admin - All Employees page
-    app.patch("/employees/:id",verifyToken, async(req,res)=>{
+    app.patch("/employees/:id", verifyToken, async (req, res) => {
       const employeeId = req.params.id;
       const { isHR } = req.body;
-      console.log(employeeId, isHR)
+      console.log(employeeId, isHR);
       const query = { _id: new ObjectId(employeeId) };
       const options = { upsert: true };
       const updateDoc = {
@@ -84,7 +91,7 @@ async function run() {
       };
       const result = await userCollection.updateOne(query, updateDoc, options);
       res.send(result);
-    })
+    });
     // get single user info
     app.get("/users/:id", verifyToken, async (req, res) => {
       const userId = req.params.id;
@@ -120,10 +127,10 @@ async function run() {
       res.send(result);
     });
     // make employee Fired - Admin - All Employees page
-    app.patch("/employees/fire/:id",verifyToken, async (req, res) => {
+    app.patch("/employees/fire/:id", verifyToken, async (req, res) => {
       const employeeId = req.params.id;
       const { fired } = req.body;
-        // console.log(employeeId,fired);
+      // console.log(employeeId,fired);
       const query = { _id: new ObjectId(employeeId) };
       const options = { upsert: true };
       const updateDoc = {
@@ -135,9 +142,9 @@ async function run() {
       res.send(result);
     });
     // update employee salary
-    app.patch("/employee/salary/:id", verifyToken, async(req,res)=>{
+    app.patch("/employee/salary/:id", verifyToken, async (req, res) => {
       const employeeId = req.params.id;
-      const {newSalary} = req.body;
+      const { newSalary } = req.body;
       const query = { _id: new ObjectId(employeeId) };
       const options = { upsert: true };
       const updateDoc = {
@@ -147,7 +154,7 @@ async function run() {
       };
       const result = await userCollection.updateOne(query, updateDoc, options);
       res.send(result);
-    })
+    });
 
     // ------ Payment Related Apis ------
     // payment intent
@@ -244,7 +251,10 @@ async function run() {
       const query = {};
       if (selectedName) query.employeeName = selectedName;
       if (selectedMonth) query.monthOnly = selectedMonth;
-      const result = await workCollection.find(query).sort({ date: -1 }).toArray();
+      const result = await workCollection
+        .find(query)
+        .sort({ date: -1 })
+        .toArray();
       // console.log(result)
       res.send(result);
     });
