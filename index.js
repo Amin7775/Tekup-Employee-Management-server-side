@@ -134,6 +134,20 @@ async function run() {
       const result = await userCollection.updateOne(query, updateDoc, options);
       res.send(result);
     });
+    // update employee salary
+    app.patch("/employee/salary/:id", verifyToken, async(req,res)=>{
+      const employeeId = req.params.id;
+      const {newSalary} = req.body;
+      const query = { _id: new ObjectId(employeeId) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          salary: newSalary,
+        },
+      };
+      const result = await userCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    })
 
     // ------ Payment Related Apis ------
     // payment intent
