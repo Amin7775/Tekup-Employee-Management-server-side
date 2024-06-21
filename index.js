@@ -47,7 +47,7 @@ async function run() {
     const userCollection = database.collection("users");
     const paymentCollection = database.collection("payments");
     const workCollection = database.collection("works");
-    const contactUsCollection = database.collection("contactUs")
+    const contactUsCollection = database.collection("contactUs");
     // ------ JWT related api ------
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -65,13 +65,13 @@ async function run() {
       res.send(result);
     });
     // get single user info
-    app.get('/users/:id', verifyToken, async(req,res)=>{
+    app.get("/users/:id", verifyToken, async (req, res) => {
       const userId = req.params.id;
       // console.log(userId)
-      const query = {_id : new ObjectId(userId)}
-      const result = await userCollection.findOne(query)
-      res.send(result)
-    })
+      const query = { _id: new ObjectId(userId) };
+      const result = await userCollection.findOne(query);
+      res.send(result);
+    });
     // post
     app.post("/users", async (req, res) => {
       const userInfo = req.body;
@@ -133,58 +133,70 @@ async function run() {
       const paymentResult = await paymentCollection.insertOne(payment);
       res.send({ paymentResult });
     });
-    // payment history
-    app.get("/payment-history",verifyToken, async (req, res) => {
+    // payment history - employee
+    app.get("/payment-history", verifyToken, async (req, res) => {
       const userEmail = req.decoded?.email;
       // console.log(userEmail)
       const query = { employeeEmail: userEmail };
-      const page = parseInt(req.query?.page)
+      const page = parseInt(req.query?.page);
 
       const sortResult = await paymentCollection
         .find(query)
-        .skip(page*5)
+        .skip(page * 5)
         .limit(5)
-        .sort({ paymentYear : -1, monthNumber: -1 })
+        .sort({ paymentYear: -1, monthNumber: -1 })
         .toArray();
       res.send(sortResult);
     });
+    // single employee payment history - HR - Employee details page
+    app.get("/payment-history/:id", verifyToken, async (req, res) => {
+      const employeeId = req.params.id;
+      // console.log(employeeId);
+      const query = { employeeId: employeeId };
+      const result = await paymentCollection
+        .find(query)
+        .limit(6)
+        .sort({ paymentYear: -1, monthNumber: -1 })
+        .toArray();
+      res.send(result);
+    });
     // payment count for pagination
-    app.get('/paymentCount', verifyToken, async(req,res)=>{
+    app.get("/paymentCount", verifyToken, async (req, res) => {
       const userEmail = req.decoded?.email;
       const query = { employeeEmail: userEmail };
-      const count = await paymentCollection.countDocuments(query)
-      res.send({count})
-    })
+      const count = await paymentCollection.countDocuments(query);
+      res.send({ count });
+    });
 
     // ---------- work related api ---------
-    app.post('/works',verifyToken, async(req,res)=>{
-        const workInfo = req.body;
-        const result = await workCollection.insertOne(workInfo)
-        res.send(result)
-    })
+    app.post("/works", verifyToken, async (req, res) => {
+      const workInfo = req.body;
+      const result = await workCollection.insertOne(workInfo);
+      res.send(result);
+    });
 
-    app.get('/works', verifyToken,async(req,res)=>{
+    app.get("/works", verifyToken, async (req, res) => {
       const userEmail = req.decoded?.email;
-      const query = {employeeEmail: userEmail}
+      const query = { employeeEmail: userEmail };
       const result = await workCollection
-      .find(query)
-      .sort({ date: -1 })
-      .toArray()
-      res.send(result)
-    })
+        .find(query)
+        .sort({ date: -1 })
+        .toArray();
+      res.send(result);
+    });
 
     // ---------- Contact Us related Apis ----------
 
-    app.get('/contactUs',verifyToken, async(req,res)=>{
+    app.get("/contactUs", verifyToken, async (req, res) => {
       const result = await contactUsCollection.find().toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
-    app.post('/contactUs', async(req,res)=>{
+    app.post("/contactUs", async (req, res) => {
       const contactUsInfo = req.body;
-      const result = await contactUsCollection.insertOne(contactUsInfo)
-      res.send(result)
-    })
+      const result = await contactUsCollection.insertOne(contactUsInfo);
+      res.send(result);
+    });
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
