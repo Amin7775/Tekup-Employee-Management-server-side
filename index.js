@@ -64,6 +64,12 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+    // getting all data except Admin - For Admin - All Employees page
+    app.get("/employees", verifyToken, async (req, res) => {
+      const query = {role: { $in: ["Employee", "HR"] }, isVerfied:true}
+      const result = await userCollection.find(query).toArray();
+      res.send(result);
+    });
     // get single user info
     app.get("/users/:id", verifyToken, async (req, res) => {
       const userId = req.params.id;
@@ -185,7 +191,7 @@ async function run() {
       res.send(result);
     });
 
-    // get all work related data
+    // get all work related data - Work Progress - HR
     app.get("/allworks", verifyToken, async (req, res) => {
       const queries = req.query;
       const selectedMonth = parseInt(queries.selectedMonth);
