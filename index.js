@@ -64,6 +64,14 @@ async function run() {
       const result = await userCollection.find().toArray();
       res.send(result);
     });
+    // get single user info
+    app.get('/users/:id', verifyToken, async(req,res)=>{
+      const userId = req.params.id;
+      // console.log(userId)
+      const query = {_id : new ObjectId(userId)}
+      const result = await userCollection.findOne(query)
+      res.send(result)
+    })
     // post
     app.post("/users", async (req, res) => {
       const userInfo = req.body;
