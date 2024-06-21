@@ -185,6 +185,20 @@ async function run() {
       res.send(result);
     });
 
+    // get all work related data
+    app.get("/allworks", verifyToken, async (req, res) => {
+      const queries = req.query;
+      const selectedMonth = parseInt(queries.selectedMonth);
+      const selectedName = queries.selectedName;
+      // console.log(queries, selectedMonth, selectedName);
+      const query = {};
+      if (selectedName) query.employeeName = selectedName;
+      if (selectedMonth) query.monthOnly = selectedMonth;
+      const result = await workCollection.find(query).sort({ date: -1 }).toArray();
+      // console.log(result)
+      res.send(result);
+    });
+
     // ---------- Contact Us related Apis ----------
 
     app.get("/contactUs", verifyToken, async (req, res) => {
