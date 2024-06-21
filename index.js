@@ -119,6 +119,21 @@ async function run() {
       const result = await userCollection.updateOne(query, updateDoc, options);
       res.send(result);
     });
+    // make employee Fired - Admin - All Employees page
+    app.patch("/employees/fire/:id",verifyToken, async (req, res) => {
+      const employeeId = req.params.id;
+      const { fired } = req.body;
+        // console.log(employeeId,fired);
+      const query = { _id: new ObjectId(employeeId) };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          isFired: !fired,
+        },
+      };
+      const result = await userCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
 
     // ------ Payment Related Apis ------
     // payment intent
