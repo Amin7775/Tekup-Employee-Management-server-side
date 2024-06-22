@@ -56,6 +56,30 @@ async function run() {
       });
       res.send({ token });
     });
+    // verify admin middleware
+    const verifyAdmin = async (req, res, next) => {
+      const email = req.decoded?.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      // console.log(user);
+      const isAdmin = user?.role === "Admin";
+      if (!isAdmin) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
+    // verify HR middleware
+    const verifyHR = async (req, res, next) => {
+      const email = req.decoded?.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      // console.log(user);
+      const isHR = user?.role === "HR";
+      if (!isHR) {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+      next();
+    };
 
     // -----user related api-----
 
@@ -67,7 +91,7 @@ async function run() {
       res.send(result);
     });
     // getting all data for employees - both verified / unverified;
-    app.get("/users/employees", verifyToken, async (req, res) => {
+    app.get("/users/employees", verifyToken, verifyHR, async (req, res) => {
       const query = { role: { $in: ["Employee", "HR"] } };
       const result = await userCollection.find(query).toArray();
       res.send(result);
@@ -80,13 +104,13 @@ async function run() {
       res.send(result);
     });
     // getting all data except Admin - For Admin - All Employees page
-    app.get("/employees", verifyToken, async (req, res) => {
+    app.get("/employees", verifyToken, verifyAdmin, async (req, res) => {
       const query = { role: { $in: ["Employee", "HR"] }, isVerfied: true };
       const result = await userCollection.find(query).toArray();
       res.send(result);
     });
     // make employee HR - Admin - All Employees page
-    app.patch("/employees/:id", verifyToken, async (req, res) => {
+    app.patch("/employees/:id", verifyToken, verifyAdmin, async (req, res) => {
       const employeeId = req.params.id;
       const { isHR } = req.body;
       console.log(employeeId, isHR);
@@ -100,8 +124,8 @@ async function run() {
       const result = await userCollection.updateOne(query, updateDoc, options);
       res.send(result);
     });
-    // get single user info
-    app.get("/users/:id", verifyToken, async (req, res) => {
+    // get single user info - Employee list - HR
+    app.get("/users/:id", verifyToken, verifyHR, async (req, res) => {
       const userId = req.params.id;
       // console.log(userId)
       const query = { _id: new ObjectId(userId) };
@@ -135,20 +159,29 @@ async function run() {
       res.send(result);
     });
     // make employee Fired - Admin - All Employees page
-    app.patch("/employees/fire/:id", verifyToken, async (req, res) => {
-      const employeeId = req.params.id;
-      const { fired } = req.body;
-      // console.log(employeeId,fired);
-      const query = { _id: new ObjectId(employeeId) };
-      const options = { upsert: true };
-      const updateDoc = {
-        $set: {
-          isFired: !fired,
-        },
-      };
-      const result = await userCollection.updateOne(query, updateDoc, options);
-      res.send(result);
-    });
+    app.patch(
+      "/employees/fire/:id",
+      verifyToken,
+      verifyAdmin,
+      async (req, res) => {
+        const employeeId = req.params.id;
+        const { fired } = req.body;
+        // console.log(employeeId,fired);
+        const query = { _id: new ObjectId(employeeId) };
+        const options = { upsert: true };
+        const updateDoc = {
+          $set: {
+            isFired: !fired,
+          },
+        };
+        const result = await userCollection.updateOne(
+          query,
+          updateDoc,
+          options
+        );
+        res.send(result);
+      }
+    );
     // update employee salary
     app.patch("/employee/salary/:id", verifyToken, async (req, res) => {
       const employeeId = req.params.id;
@@ -221,7 +254,7 @@ async function run() {
       const result = await paymentCollection
         .find(query)
         .limit(6)
-        .sort({ paymentYear: -1, monthNumber: -1 })
+        .sort({ paymentYear: -1, monthNumber: 1 })
         .toArray();
       res.send(result);
     });
@@ -251,7 +284,7 @@ async function run() {
     });
 
     // get all work related data - Work Progress - HR
-    app.get("/allworks", verifyToken, async (req, res) => {
+    app.get("/allworks", verifyToken, verifyHR, async (req, res) => {
       const queries = req.query;
       const selectedMonth = parseInt(queries.selectedMonth);
       const selectedName = queries.selectedName;
@@ -269,7 +302,7 @@ async function run() {
 
     // ---------- Contact Us related Apis ----------
 
-    app.get("/contactUs", verifyToken, async (req, res) => {
+    app.get("/contactUs", verifyToken, verifyAdmin, async (req, res) => {
       const result = await contactUsCollection.find().toArray();
       res.send(result);
     });
