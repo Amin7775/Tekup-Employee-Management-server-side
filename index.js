@@ -59,9 +59,17 @@ async function run() {
 
     // -----user related api-----
 
-    // getting all data
-    app.get("/users", verifyToken, async (req, res) => {
-      const result = await userCollection.find().toArray();
+    // verify user
+    app.get("/user", verifyToken, async (req, res) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const result = await userCollection.findOne(query);
+      res.send(result);
+    });
+    // getting all data for employees - both verified / unverified;
+    app.get("/users/employees", verifyToken, async (req, res) => {
+      const query = { role: { $in: ["Employee", "HR"] } };
+      const result = await userCollection.find(query).toArray();
       res.send(result);
     });
     // getting single user - Login page - used for checking isFired
